@@ -8,7 +8,7 @@ resolutions = ['1080p', '720p', '480p']
 
 
 def create_test_case():
-    folders = ['fc2-ppv-1473962', 'fc2-ppv-1473963', 'fc2-ppv-1473964']
+    folders = ['test1.mp4', 'test2.mp4]
     # create folders
     for folder in folders:
         os.mkdir(folder)
