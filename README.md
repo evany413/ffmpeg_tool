@@ -44,6 +44,19 @@ python main.py
 
 ---
 
+### [extract-sub-ffmpeg](extract-sub-ffmpeg/)
+
+Extract subtitle streams from MKV files, preserving the original format and styling (ASS, SSA, SRT, VTT, PGS, etc.). Drop MKV files into the folder and run the script — each subtitle track is saved separately to `Output/`.
+
+**Requirements:** Python >= 3.9, FFmpeg
+
+```bash
+cd extract-sub-ffmpeg
+python main.py
+```
+
+---
+
 ## Requirements (shared)
 
 - FFmpeg installed and available in PATH
