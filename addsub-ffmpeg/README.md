@@ -54,6 +54,7 @@ file; do not use it as a completed video.
 
 - Video and subtitle lists are matched line-by-line, so order matters.
 - Subtitle filenames with special characters (brackets, apostrophes, etc.) are handled automatically.
+- Output pixels are normalized to a 1:1 sample aspect ratio to prevent players from stretching the picture.
 - Bitrate is capped at 2000k. If the source bitrate is lower, the original is preserved.
 - Windows defaults to NVIDIA `h264_nvenc`; Linux and macOS default to CPU
   `libx264`. Set the `VIDEO_ENCODER` environment variable to override it:

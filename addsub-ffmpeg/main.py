@@ -89,6 +89,7 @@ for v_str, s_str in zip(vid_lines, sub_lines):
             )
         else:
             print(f"  -> Keeping original dimensions: {source_width}x{source_height}.")
+        v = v.filter("setsar", 1)
         a = stream.audio
 
         # Output settings
