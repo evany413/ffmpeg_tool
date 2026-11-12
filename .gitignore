@@ -1,0 +1,42 @@
+# Video / media files
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.m4v
+*.ts
+*.m2ts
+
+# Subtitle files
+*.srt
+*.ass
+*.ssa
+*.sub
+*.vtt
+*.sup
+
+# Generated output
+Output/
+
+# Audio files
+*.mp3
+*.aac
+*.flac
+*.wav
+*.m4a
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# uv
+uv.lock
+
+# Project-local external tools
+.tools/

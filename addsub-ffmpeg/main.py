@@ -1,11 +1,25 @@
+import os
 import shutil
 import ffmpeg
 from pathlib import Path
+
+
+# Prefer the project-local full build, keeping probe and encode versions aligned.
+local_bin = Path(__file__).resolve().parent.parent / '.tools' / 'ffmpeg' / 'bin'
+executable_suffix = '.exe' if os.name == 'nt' else ''
+local_ffmpeg = local_bin / f'ffmpeg{executable_suffix}'
+local_ffprobe = local_bin / f'ffprobe{executable_suffix}'
+ffmpeg_cmd = str(local_ffmpeg) if local_ffmpeg.is_file() else 'ffmpeg'
+ffprobe_cmd = str(local_ffprobe) if local_ffprobe.is_file() else 'ffprobe'
 
 # Configuration
 vid_list_file = Path('vid_list.txt')
 sub_list_file = Path('sub_list.txt')
 output_folder = Path('./Output')
+video_encoder = os.environ.get(
+    'VIDEO_ENCODER',
+    'h264_nvenc' if os.name == 'nt' else 'libx264',
+)
 
 # Ensure output directory exists
 output_folder.mkdir(parents=True, exist_ok=True)
@@ -34,7 +48,7 @@ for v_str, s_str in zip(vid_lines, sub_lines):
 
     try:
         # 1. Probe video information
-        probe = ffmpeg.probe(str(vid_path))
+        probe = ffmpeg.probe(str(vid_path), cmd=ffprobe_cmd)
         video_stream = next(s for s in probe['streams'] if s['codec_type'] == 'video')
 
         # Get original bitrate in bps
@@ -56,23 +70,36 @@ for v_str, s_str in zip(vid_lines, sub_lines):
         # 4. FFmpeg Stream Pipeline
         stream = ffmpeg.input(str(vid_path))
 
-        # Filters: Hardcode subtitles + scale to 1080p
-        v = (
-            stream.video
-            .filter("subtitles", str(temp_sub))
-            .filter("scale", 1920, 1080)
-        )
+        # Hardcode subtitles. Only videos larger than 1080p are scaled down;
+        # smaller videos keep their original dimensions and aspect ratio.
+        v = stream.video.filter("subtitles", str(temp_sub))
+        source_width = int(video_stream['width'])
+        source_height = int(video_stream['height'])
+        if source_width > 1920 or source_height > 1080:
+            v = v.filter(
+                "scale",
+                1920,
+                1080,
+                force_original_aspect_ratio="decrease",
+                force_divisible_by=2,
+            )
+            print(
+                f"  -> Scaling {source_width}x{source_height} down within "
+                "1920x1080 while preserving aspect ratio."
+            )
+        else:
+            print(f"  -> Keeping original dimensions: {source_width}x{source_height}.")
         a = stream.audio
 
         # Output settings
         ffmpeg.output(
             v, a,
             str(out_file),
-            vcodec='h264_nvenc',  # GPU: h264_nvenc (NVIDIA), h264_amf (AMD), h264_qsv (Intel) | CPU: libx264
+            vcodec=video_encoder,
             acodec='aac',
             video_bitrate=target_bitrate,
             pix_fmt='yuv420p'
-        ).run(overwrite_output=True)
+        ).global_args('-xerror').run(cmd=ffmpeg_cmd, overwrite_output=True)
 
         print(f"Done: {out_file.name} saved successfully.")
 
